@@ -1,19 +1,40 @@
-from flask import Flask, render_template
-
+from flask import Flask, render_template, request, redirect, url_for
+from forms import Todo
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'password'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tmp/test.db'
 
-@app.route('/')
+
+@app.route('/', methods=['GET', 'POST'])
 def hello_world():
-    return render_template('base.html', list_of_names=['chris', "Shawn", "Jackson"])
+    # return render_template('base.html', list_of_names=['chris', "Shawn", "Jackson"])
+    request_method = request.method
+    if request.method == 'POST':
+        first_name = request.form['first_name']
+        return redirect(url_for("name", first_name=first_name))
+    return render_template('hello.html', request_method=request_method)
+
+
+@app.route('/name/<string:first_name>')
+def name(first_name):
+    return f'{first_name}'
+
+@app.route('/todo', methods=['GET', "POST"])
+def todo():
+    todo_form = Todo()
+    if todo_form.validate_on_submit():
+        print(todo_form.content.data)
+        return redirect('/')
+    return render_template('todo.html', form=todo_form)
 
 @app.route('/shawn')
 def hello_shawn():
     return 'Hello Shawn'
 
-@app.route('/<name>')
-def greet(name):
-    return f'Hello {name}'
+# @app.route('/<name>')
+# def greet(name):
+#     return f'Hello {name}'
 
 @app.route('/about')
 def about():
